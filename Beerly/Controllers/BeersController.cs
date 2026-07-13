@@ -63,5 +63,27 @@ namespace Beerly.Controllers
 
             return NoContent();
         }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutBeer(int id, Beer beer)
+        {
+
+            var existingBeer = await _context.Beers.FindAsync(id);
+            if (existingBeer == null)
+            {
+                return NotFound();
+            }
+
+            existingBeer.Name = beer.Name;
+            existingBeer.Brewery = beer.Brewery;
+            existingBeer.Style = beer.Style;
+            existingBeer.AbvPercentage = beer.AbvPercentage;
+            existingBeer.Country = beer.Country;
+
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+
+        }
     }
 }
