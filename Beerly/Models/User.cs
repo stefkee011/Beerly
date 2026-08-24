@@ -12,6 +12,9 @@ namespace Beerly.Models
         [Required]
         public string Email { get; set; } = string.Empty;
 
+        [Required]
+        public string PasswordHash { get; set; } = string.Empty;
+
         public string? Country { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
