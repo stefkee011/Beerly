@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using Beerly.Data;
 using Beerly.Models;
-using Beerly.Data;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace Beerly.Controllers
 {
@@ -35,17 +37,28 @@ namespace Beerly.Controllers
             return review;
         }
 
+        [Authorize]
+        [Authorize]
         [HttpPost]
         public async Task<ActionResult<Review>> PostReview(Review review)
         {
-            var userExists = await _context.Users.AnyAsync(u => u.Id == review.UserId);
-            var beerExists = await _context.Beers.AnyAsync(b => b.Id == review.BeerId);
-
-            if (!userExists)
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userIdClaim == null)
             {
-                return BadRequest("No user exists with that UserId.");
+                return Unauthorized();
             }
 
+            var userId = int.Parse(userIdClaim);
+
+            var userExists = await _context.Users.AnyAsync(u => u.Id == userId);
+            if (!userExists)
+            {
+                return Unauthorized("Your account no longer exists.");
+            }
+
+            review.UserId = userId;
+
+            var beerExists = await _context.Beers.AnyAsync(b => b.Id == review.BeerId);
             if (!beerExists)
             {
                 return BadRequest("No beer exists with that BeerId.");
@@ -57,6 +70,7 @@ namespace Beerly.Controllers
             return CreatedAtAction(nameof(GetReview), new { id = review.Id }, review);
         }
 
+        [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutReview(int id, Review review)
         {
@@ -75,6 +89,7 @@ namespace Beerly.Controllers
             return NoContent();
         }
 
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteReview(int id)
         {
