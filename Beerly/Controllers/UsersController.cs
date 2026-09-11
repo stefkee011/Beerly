@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using Beerly.Data;
 using Beerly.Models;
-using Beerly.Data;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace Beerly.Controllers
 {
@@ -44,6 +46,7 @@ namespace Beerly.Controllers
             return CreatedAtAction(nameof(GetUser), new { id = user.Id }, user);
         }
 
+        [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutUser(int id, User user)
         {
@@ -52,6 +55,12 @@ namespace Beerly.Controllers
             if (existingUser == null)
             {
                 return NotFound();
+            }
+
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userIdClaim == null || existingUser.Id != int.Parse(userIdClaim))
+            {
+                return Forbid();
             }
 
             existingUser.Username = user.Username;
@@ -63,6 +72,7 @@ namespace Beerly.Controllers
             return NoContent();
         }
 
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)
         {
@@ -71,6 +81,12 @@ namespace Beerly.Controllers
             if (user == null)
             {
                 return NotFound();
+            }
+
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userIdClaim == null || user.Id != int.Parse(userIdClaim))
+            {
+                return Forbid();
             }
 
             _context.Users.Remove(user);
