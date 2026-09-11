@@ -1,7 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using Beerly.Data;
 using Beerly.Models;
-using Beerly.Data;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Beerly.Controllers
 {
@@ -37,7 +38,8 @@ namespace Beerly.Controllers
             return beer;
         }
 
-        
+
+        [Authorize]
         [HttpPost]
         public async Task<ActionResult<Beer>> PostBeer(Beer beer)
         {
@@ -47,7 +49,8 @@ namespace Beerly.Controllers
             return CreatedAtAction(nameof(GetBeer), new { id = beer.Id }, beer);
         }
 
-        
+
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteBeer(int id)
         {
@@ -64,6 +67,8 @@ namespace Beerly.Controllers
             return NoContent();
         }
 
+
+        [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutBeer(int id, Beer beer)
         {
