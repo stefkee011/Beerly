@@ -81,6 +81,12 @@ namespace Beerly.Controllers
                 return NotFound();
             }
 
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userIdClaim == null || existingReview.UserId != int.Parse(userIdClaim))
+            {
+                return Forbid();
+            }
+
             existingReview.Rating = review.Rating;
             existingReview.Comment = review.Comment;
 
@@ -98,6 +104,12 @@ namespace Beerly.Controllers
             if (review == null)
             {
                 return NotFound();
+            }
+
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userIdClaim == null || review.UserId != int.Parse(userIdClaim))
+            {
+                return Forbid();
             }
 
             _context.Reviews.Remove(review);
