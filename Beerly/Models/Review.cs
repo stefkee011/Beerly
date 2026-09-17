@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Beerly.Models
 {
@@ -16,7 +17,12 @@ namespace Beerly.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public int UserId { get; set; }
+        [ForeignKey(nameof(UserId))]
+        public User? User { get; set; }
+
         public int BeerId { get; set; }
+        [ForeignKey(nameof(BeerId))]
+        public Beer? Beer { get; set; }
 
         public static ValidationResult? ValidateRating(double rating, ValidationContext context)
         {

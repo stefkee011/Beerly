@@ -21,7 +21,7 @@ namespace Beerly.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
-            return await _context.Users.ToListAsync();
+            return await _context.Users.Where(u => !u.IsDeleted).ToListAsync();
         }
 
         [HttpGet("{id}")]
@@ -52,7 +52,7 @@ namespace Beerly.Controllers
         {
             var existingUser = await _context.Users.FindAsync(id);
 
-            if (existingUser == null)
+            if (existingUser == null || existingUser.IsDeleted)
             {
                 return NotFound();
             }
@@ -78,7 +78,7 @@ namespace Beerly.Controllers
         {
             var user = await _context.Users.FindAsync(id);
 
-            if (user == null)
+            if (user == null || user.IsDeleted)
             {
                 return NotFound();
             }
@@ -89,7 +89,12 @@ namespace Beerly.Controllers
                 return Forbid();
             }
 
-            _context.Users.Remove(user);
+            user.IsDeleted = true;
+            user.Username = "[deleted]";
+            user.Email = $"deleted_{user.Id}@beerly.local";
+            user.PasswordHash = string.Empty;
+            user.Country = null;
+
             await _context.SaveChangesAsync();
 
             return NoContent();
