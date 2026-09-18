@@ -33,6 +33,12 @@ namespace Beerly.Controllers
                 return BadRequest("Email is already registered.");
             }
 
+            var usernameExists = await _context.Users.AnyAsync(u => u.Username == request.Username);
+            if (usernameExists)
+            {
+                return BadRequest("Username is already taken.");
+            }
+
             var user = new User
             {
                 Username = request.Username,
@@ -51,18 +57,18 @@ namespace Beerly.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginRequest request)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email && !u.IsDeleted);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == request.Username && !u.IsDeleted);
 
             if (user == null)
             {
-                return Unauthorized("Invalid email or password.");
+                return Unauthorized("Invalid username or password.");
             }
 
             var result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, request.Password);
 
             if (result == PasswordVerificationResult.Failed)
             {
-                return Unauthorized("Invalid email or password.");
+                return Unauthorized("Invalid username or password.");
             }
 
             var token = GenerateJwtToken(user);
@@ -104,7 +110,7 @@ namespace Beerly.Controllers
 
     public class LoginRequest
     {
-        public string Email { get; set; } = string.Empty;
+        public string Username { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
     }
 }

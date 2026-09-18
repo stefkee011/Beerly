@@ -90,8 +90,6 @@ namespace Beerly.Controllers
             }
 
             user.IsDeleted = true;
-            user.Username = "[deleted]";
-            user.Email = $"deleted_{user.Id}@beerly.local";
             user.PasswordHash = string.Empty;
             user.Country = null;
 
