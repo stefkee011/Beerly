@@ -22,5 +22,7 @@ namespace Beerly.Models
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+        public bool IsDeleted { get; set; } = false;
+
     }
 }

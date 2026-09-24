@@ -17,14 +17,14 @@ namespace Beerly.Controllers
             _context = context;
         }
 
-        
+
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Beer>>> GetBeers()
         {
-            return await _context.Beers.ToListAsync();
+            return await _context.Beers.Where(b => !b.IsDeleted).ToListAsync();
         }
 
-        
+
         [HttpGet("{id}")]
         public async Task<ActionResult<Beer>> GetBeer(int id)
         {
@@ -50,31 +50,31 @@ namespace Beerly.Controllers
         }
 
 
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteBeer(int id)
         {
             var beer = await _context.Beers.FindAsync(id);
 
-            if (beer == null)
+            if (beer == null || beer.IsDeleted)
             {
                 return NotFound();
             }
 
-            _context.Beers.Remove(beer);
+            beer.IsDeleted = true;
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
 
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutBeer(int id, Beer beer)
         {
 
             var existingBeer = await _context.Beers.FindAsync(id);
-            if (existingBeer == null)
+            if (existingBeer == null || existingBeer.IsDeleted)
             {
                 return NotFound();
             }
