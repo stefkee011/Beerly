@@ -32,6 +32,17 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowBeerlyWeb", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173")
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
@@ -45,6 +56,8 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
+
+app.UseCors("AllowBeerlyWeb");
 
 app.UseAuthorization();
 

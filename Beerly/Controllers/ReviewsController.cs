@@ -37,6 +37,25 @@ namespace Beerly.Controllers
             return review;
         }
 
+        [HttpGet("by-beer/{beerId}")]
+        public async Task<ActionResult> GetReviewsForBeer(int beerId)
+        {
+            var reviews = await _context.Reviews
+                .Where(r => r.BeerId == beerId)
+                .OrderByDescending(r => r.CreatedAt)
+                .Select(r => new
+                {
+                    r.Id,
+                    r.Rating,
+                    r.Comment,
+                    r.CreatedAt,
+                    Username = r.User!.IsDeleted ? "[deleted]" : r.User.Username
+                })
+                .ToListAsync();
+
+            return Ok(reviews);
+        }
+
         [Authorize]
         [Authorize]
         [HttpPost]
@@ -62,6 +81,12 @@ namespace Beerly.Controllers
             if (!beerExists)
             {
                 return BadRequest("No beer exists with that BeerId.");
+            }
+
+            var alreadyReviewed = await _context.Reviews.AnyAsync(r => r.UserId == userId && r.BeerId == review.BeerId);
+            if (alreadyReviewed)
+            {
+                return Conflict("You have already reviewed this beer. Edit your existing review instead.");
             }
 
             _context.Reviews.Add(review);

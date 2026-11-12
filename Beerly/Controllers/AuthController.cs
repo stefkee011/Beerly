@@ -1,12 +1,13 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Beerly.Data;
+using Beerly.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Beerly.Models;
-using Beerly.Data;
 
 namespace Beerly.Controllers
 {
@@ -103,9 +104,16 @@ namespace Beerly.Controllers
 
     public class RegisterRequest
     {
+        [Required, MinLength(3), MaxLength(30)]
         public string Username { get; set; } = string.Empty;
+
+        [Required, EmailAddress]
         public string Email { get; set; } = string.Empty;
+
+        [Required, MinLength(8)]
         public string Password { get; set; } = string.Empty;
+
+        [CountryCode]
         public string? Country { get; set; }
     }
 

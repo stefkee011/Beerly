@@ -30,7 +30,7 @@ namespace Beerly.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<double?>("AbvPercentage")
+                    b.Property<double>("AbvPercentage")
                         .HasColumnType("float");
 
                     b.Property<string>("Brewery")
@@ -43,6 +43,10 @@ namespace Beerly.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
@@ -87,7 +91,8 @@ namespace Beerly.Migrations
 
                     b.HasIndex("BeerId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId", "BeerId")
+                        .IsUnique();
 
                     b.ToTable("Reviews");
                 });

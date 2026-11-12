@@ -42,6 +42,8 @@ namespace Beerly.Controllers
         [HttpGet("local/{country}")]
         public async Task<ActionResult> GetLocalRankings(string country)
         {
+            country = country.ToUpperInvariant();
+
             var rankings = await _context.Reviews
                 .Where(r => _context.Users.Any(u => u.Id == r.UserId && u.Country == country))
                 .GroupBy(r => r.UserId)

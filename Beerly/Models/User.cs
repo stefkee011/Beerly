@@ -15,6 +15,7 @@ namespace Beerly.Models
         [Required]
         public string PasswordHash { get; set; } = string.Empty;
 
+        [CountryCode]
         public string? Country { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

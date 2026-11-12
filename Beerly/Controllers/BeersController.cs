@@ -84,6 +84,7 @@ namespace Beerly.Controllers
             existingBeer.Style = beer.Style;
             existingBeer.AbvPercentage = beer.AbvPercentage;
             existingBeer.Country = beer.Country;
+            existingBeer.ImageUrl = beer.ImageUrl;
 
             await _context.SaveChangesAsync();
 

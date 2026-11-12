@@ -24,6 +24,10 @@ namespace Beerly.Data
                 .WithMany()
                 .HasForeignKey(r => r.BeerId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Review>()
+                .HasIndex(r => new { r.UserId, r.BeerId })
+                .IsUnique();
         }
     }
 }

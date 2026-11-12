@@ -15,10 +15,16 @@ namespace Beerly.Models
         [Required]
         public string Style {  get; set; } = string.Empty;
 
-        public double? AbvPercentage { get; set; }
+        [Required]
+        [Range(0.1, 100, ErrorMessage = "ABV must be between 0.1 and 100.")]
+        public double AbvPercentage { get; set; }
 
         [Required]
+        [CountryCode]
         public string Country {  get; set; } = string.Empty;
+
+        [Required]
+        public string ImageUrl { get; set; } = string.Empty;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
