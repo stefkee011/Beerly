@@ -1,5 +1,6 @@
 ﻿using Beerly.Data;
 using Beerly.Models;
+using Beerly.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,17 +12,46 @@ namespace Beerly.Controllers
     public class BeersController : ControllerBase
     {
         private readonly BeerlyContext _context;
+        private readonly IImageStorage _storage;
 
-        public BeersController(BeerlyContext context)
+        public BeersController(BeerlyContext context, IImageStorage storage)
         {
             _context = context;
+            _storage = storage;
         }
 
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Beer>>> GetBeers()
+        public async Task<ActionResult> GetBeers(string? search, int page = 1, int pageSize = 24)
         {
-            return await _context.Beers.Where(b => !b.IsDeleted).ToListAsync();
+            
+            page = Math.Max(page, 1);
+            pageSize = Math.Clamp(pageSize, 1, 60);
+
+            var query = _context.Beers
+                .AsNoTracking()
+                .Where(b => !b.IsDeleted);
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var term = search.Trim();
+
+                // Accent-insensitive
+                query = query.Where(b =>
+                    EF.Functions.Collate(b.Name, "Latin1_General_100_CI_AI").Contains(term) ||
+                    EF.Functions.Collate(b.Brewery, "Latin1_General_100_CI_AI").Contains(term));
+            }
+
+            var total = await query.CountAsync();
+
+            var items = await query
+                .OrderBy(b => b.Name)
+                .ThenBy(b => b.Id)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return Ok(new { items, total, page, pageSize });
         }
 
 
@@ -30,7 +60,7 @@ namespace Beerly.Controllers
         {
             var beer = await _context.Beers.FindAsync(id);
 
-            if (beer == null)
+            if (beer == null || beer.IsDeleted)
             {
                 return NotFound();
             }
@@ -41,8 +71,35 @@ namespace Beerly.Controllers
 
         [Authorize]
         [HttpPost]
-        public async Task<ActionResult<Beer>> PostBeer(Beer beer)
+        public async Task<ActionResult<Beer>> PostBeer(CreateBeerRequest request)
         {
+            // Only images that went through are accepted
+            if (!_storage.Exists(request.ImageUrl))
+            {
+                return BadRequest("Image not found. Please upload it again.");
+            }
+
+            var name = request.Name.Trim();
+            var brewery = request.Brewery.Trim();
+
+            var alreadyExists = await _context.Beers
+                .AnyAsync(b => !b.IsDeleted && b.Name == name && b.Brewery == brewery);
+
+            if (alreadyExists)
+            {
+                return Conflict("This beer is already in the database.");
+            }
+
+            var beer = new Beer
+            {
+                Name = name,
+                Brewery = brewery,
+                Style = request.Style.Trim(),
+                AbvPercentage = request.AbvPercentage,
+                Country = request.Country,
+                ImageUrl = request.ImageUrl.Trim()
+            };
+
             _context.Beers.Add(beer);
             await _context.SaveChangesAsync();
 
@@ -71,7 +128,7 @@ namespace Beerly.Controllers
         [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutBeer(int id, Beer beer)
-        {
+        {   
 
             var existingBeer = await _context.Beers.FindAsync(id);
             if (existingBeer == null || existingBeer.IsDeleted)
